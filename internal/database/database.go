@@ -1,6 +1,7 @@
 package database
 
 import (
+	"cinema/internal/model"
 	"fmt"
 	"os"
 
@@ -44,6 +45,21 @@ func connectDB() *gorm.DB {
 
 	if err := defineEnums(db); err != nil {
 		log.Error().Msgf("Can't define enums: %s", err)
+	}
+
+	if err := db.AutoMigrate(
+		&model.Roles{},
+		&model.PaymentMethods{},
+		&model.Genres{},
+		&model.CinemaStudios{},
+		&model.Class{},
+		&model.Movies{},
+		&model.Users{},
+		&model.Seats{},
+		&model.Tickets{},
+		&model.Transactions{},
+	); err != nil {
+		log.Error().Msgf("Can't migrate tables %s", err)
 	}
 
 	return db

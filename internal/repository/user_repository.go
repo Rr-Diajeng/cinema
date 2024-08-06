@@ -37,11 +37,9 @@ func (ur userRepository) Save(c context.Context, user model.Users) (err error) {
 
 func (ur userRepository) FindUserByEmailOrUsername(c context.Context, data string) (user model.Users, err error) {
 
-	if err = ur.db.Find(&user, "email = ?", data).Error; err != nil {
-		if err = ur.db.Find(&user, "username = ?", data).Error; err != nil {
-			return user, err
-		}
-	}
-
-	return user, nil
+    err = ur.db.Where("email = ? OR username = ?", data, data).First(&user).Error
+    if err != nil {
+        return user, err
+    }
+    return user, nil
 }

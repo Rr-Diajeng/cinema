@@ -5,6 +5,7 @@ import (
 	"cinema/internal/repository"
 	"cinema/internal/util/security"
 	"context"
+	"fmt"
 	"os"
 	"time"
 
@@ -50,21 +51,22 @@ func (uu userUsecase) LoginUser(c context.Context, userToLogin model.LoginReques
 		return "", err
 	}
 
-	if security.CheckPasswordHash(userToLogin.Password, user.Password) {
-		generatedToken := jwt_lib.New(jwt_lib.GetSigningMethod("HS256"))
-		generatedToken.Claims = jwt_lib.MapClaims{
-			"Id": user.ID,
-			"exp": time.Now().Add(time.Hour * 1).Unix(),
-		}
+    if !security.CheckPasswordHash(userToLogin.Password, user.Password) {
+        return "", fmt.Errorf("invalid password")
+    }
+	
+    generatedToken := jwt_lib.New(jwt_lib.GetSigningMethod("HS256"))
+    generatedToken.Claims = jwt_lib.MapClaims{
+        "Id": user.ID,
+        "exp": time.Now().Add(time.Hour * 1).Unix(),
+    }
 
-		token, err = generatedToken.SignedString([]byte(os.Getenv("SECRET_KEY")))
+    token, err = generatedToken.SignedString([]byte(os.Getenv("SECRET_KEY")))
+    if err != nil {
+        return "", err
+    }
 
-		if err != nil{
-			return "", err
-		}
-	}
-
-	return token, nil
+    return token, nil
 }
 
 func (uu userUsecase) GetUserProfile(c context.Context, idFromToken string) (userProfile model.UserProfileResponse, err error) {
