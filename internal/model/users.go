@@ -12,3 +12,21 @@ type Users struct {
 	Role     Roles     `gorm:"foreignKey:RoleID"`
 	Tickets  []Tickets `gorm:"foreignKey:UserID"`
 }
+
+type RegisterRequest struct {
+	Username string `json:"username"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
+	RoleID   uint   `json:"roleId"`
+}
+
+type LoginRequest struct {
+	UsernameOrEmail string `json:"usernameOrEmail"`
+	Password        string `json:"password"`
+}
+
+type UserProfileResponse struct {
+	Username string `json:"username"`
+	Email    string `json:"email"`
+	Role     Roles
+}
