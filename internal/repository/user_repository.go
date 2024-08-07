@@ -11,6 +11,7 @@ type (
 	UserRepository interface {
 		Save(c context.Context, user model.Users) (err error)
 		FindUserByEmailOrUsername(c context.Context, email string) (user model.Users, err error)
+		FindOneUser(c context.Context, id uint) (user model.Users, err error)
 	}
 
 	userRepository struct {
@@ -37,9 +38,20 @@ func (ur userRepository) Save(c context.Context, user model.Users) (err error) {
 
 func (ur userRepository) FindUserByEmailOrUsername(c context.Context, data string) (user model.Users, err error) {
 
-    err = ur.db.Where("email = ? OR username = ?", data, data).First(&user).Error
+	err = ur.db.Where("email = ? OR username = ?", data, data).First(&user).Error
+	if err != nil {
+		return user, err
+	}
+	return user, nil
+}
+
+func (ur userRepository) FindOneUser(c context.Context, id uint) (model.Users, error) {
+    var user model.Users
+	
+    err := ur.db.Preload("Role").Where("id = ?", id).First(&user).Error
     if err != nil {
         return user, err
     }
+
     return user, nil
 }

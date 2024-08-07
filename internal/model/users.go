@@ -28,5 +28,5 @@ type LoginRequest struct {
 type UserProfileResponse struct {
 	Username string `json:"username"`
 	Email    string `json:"email"`
-	Role     Roles
+	Role     string `json:"roleName"`
 }

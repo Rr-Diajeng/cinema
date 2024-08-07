@@ -5,6 +5,7 @@ import (
 	"cinema/internal/repository"
 	"cinema/internal/util/security"
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"time"
@@ -16,7 +17,7 @@ type (
 	UserUsecase interface {
 		RegisterUser(c context.Context, userToRegister model.RegisterRequest) (err error)
 		LoginUser(c context.Context, userToLogin model.LoginRequest) (token string, err error)
-		GetUserProfile(c context.Context, idFromToken string) (userProfile model.UserProfileResponse, err error)
+		GetUserProfile(c context.Context, token string) (userProfile model.UserProfileResponse, err error)
 	}
 
 	userUsecase struct {
@@ -51,24 +52,59 @@ func (uu userUsecase) LoginUser(c context.Context, userToLogin model.LoginReques
 		return "", err
 	}
 
-    if !security.CheckPasswordHash(userToLogin.Password, user.Password) {
-        return "", fmt.Errorf("invalid password")
-    }
-	
-    generatedToken := jwt_lib.New(jwt_lib.GetSigningMethod("HS256"))
-    generatedToken.Claims = jwt_lib.MapClaims{
-        "Id": user.ID,
-        "exp": time.Now().Add(time.Hour * 1).Unix(),
-    }
+	if !security.CheckPasswordHash(userToLogin.Password, user.Password) {
+		return "", fmt.Errorf("invalid password")
+	}
 
-    token, err = generatedToken.SignedString([]byte(os.Getenv("SECRET_KEY")))
+	generatedToken := jwt_lib.New(jwt_lib.GetSigningMethod("HS256"))
+	generatedToken.Claims = jwt_lib.MapClaims{
+		"Id":  user.ID,
+		"exp": time.Now().Add(time.Hour * 1).Unix(),
+	}
+
+	token, err = generatedToken.SignedString([]byte(os.Getenv("SECRET_KEY")))
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
+}
+
+func (uu userUsecase) GetUserProfile(c context.Context, token string) (model.UserProfileResponse, error) {
+    userProfile := model.UserProfileResponse{}
+
+    claims, err := security.ParseToken(token)
     if err != nil {
-        return "", err
+        return userProfile, fmt.Errorf("invalid token: %w", err)
     }
 
-    return token, nil
+    var userId uint
+    switch id := (*claims)["Id"].(type) {
+    case float64:
+        userId = uint(id)
+    case int:
+        userId = uint(id)
+    case int64:
+        userId = uint(id)
+    case json.Number:
+        parsedId, err := id.Int64()
+        if err != nil {
+            return userProfile, fmt.Errorf("invalid token claims: cannot parse user Id, error: %v", err)
+        }
+        userId = uint(parsedId)
+    default:
+        return userProfile, fmt.Errorf("invalid token claims: no user Id or unexpected type, claims received: %+v", *claims)
+    }
+
+    user, err := uu.userRepository.FindOneUser(c, userId)
+    if err != nil {
+        return userProfile, fmt.Errorf("user not found: %w", err)
+    }
+
+    userProfile.Username = user.Username
+    userProfile.Email = user.Email
+	userProfile.Role = user.Role.Name
+
+    return userProfile, nil
 }
 
-func (uu userUsecase) GetUserProfile(c context.Context, idFromToken string) (userProfile model.UserProfileResponse, err error) {
-	return 
-}
