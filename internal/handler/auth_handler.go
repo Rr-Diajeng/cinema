@@ -3,6 +3,7 @@ package handler
 import (
 	"cinema/internal/model"
 	"cinema/internal/usecase"
+	"cinema/internal/util/security"
 	"net/http"
 	"strings"
 
@@ -18,8 +19,6 @@ func NewAuthHandler(userUsecase usecase.UserUsecase) *AuthHandler {
 		userUsecase: userUsecase,
 	}
 }
-
-var blacklistedTokens = make(map[string]bool)
 
 func (ah *AuthHandler) register(c *gin.Context) {
 	registerRequest := model.RegisterRequest{}
@@ -91,7 +90,7 @@ func (ah *AuthHandler) logout(c *gin.Context) {
 
 	token := tokenParts[1]
 
-	blacklistedTokens[token] = true
+	security.BlacklistedTokens[token] = true
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "User has been logged out",
@@ -119,7 +118,7 @@ func (ah *AuthHandler) getUserProfile(c *gin.Context) {
 	}
 	token := tokenParts[1]
 
-	if blacklistedTokens[token] {
+	if security.BlacklistedTokens[token] {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"message": "User needs to log in again",
 		})
