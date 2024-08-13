@@ -11,7 +11,7 @@ type Movies struct {
 	ID          uint          `gorm:"type:bigint;primary_key;auto_increment"`
 	Title       string        `gorm:"type:varchar;not_null"`
 	Genres      []Genres      `gorm:"many2many:genre_movies;"`
-	Duration    time.Duration `gorm:"type:bigint"`
+	Duration    int64 `gorm:"type:bigint"`
 	ReleaseDate time.Time     `gorm:"type:timestamp;not_null"`
 	Synopsis    string        `gorm:"type:text"`
 	BasePrice   float32       `gorm:"type:float"`
@@ -21,7 +21,7 @@ type Movies struct {
 type AddMovieRequest struct {
 	Title       string    `json:"title"`
 	Genres      []uint    `json:"genres"`
-	Duration    string    `json:"duration"`
+	Duration    string   `json:"duration"`
 	ReleaseDate time.Time `json:"releaseDate"`
 	Synopsis    string    `json:"synopsis"`
 	BasePrice   float32   `json:"basePrice"`

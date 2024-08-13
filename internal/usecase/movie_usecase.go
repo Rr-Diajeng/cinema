@@ -25,7 +25,7 @@ type (
 func NewMovieUsecase(movie repository.MovieRepository, user repository.UserRepository) MovieUsecase {
 	return movieUsecase{
 		movieRepository: movie,
-		userRepository: user,
+		userRepository:  user,
 	}
 }
 
@@ -43,14 +43,16 @@ func (mu movieUsecase) InputMovie(c context.Context, movieToAdd model.AddMovieRe
 	}
 
 	duration, err := time.ParseDuration(movieToAdd.Duration)
-	if err != nil{
+	if err != nil {
 		return err
 	}
+
+	durationInSeconds := int64(duration.Seconds())
 
 	if err := mu.movieRepository.AddMovie(c, model.Movies{
 		Title:       movieToAdd.Title,
 		Genres:      genres,
-		Duration:    duration,
+		Duration:    durationInSeconds,
 		ReleaseDate: movieToAdd.ReleaseDate,
 		Synopsis:    movieToAdd.Synopsis,
 		BasePrice:   movieToAdd.BasePrice,
