@@ -17,3 +17,12 @@ type Movies struct {
 	BasePrice   float32       `gorm:"type:float"`
 	Tickets     []Tickets     `gorm:"foreignKey:MovieID"`
 }
+
+type AddMovieRequest struct {
+	Title       string    `json:"title"`
+	Genres      []uint    `json:"genres"`
+	Duration    string    `json:"duration"`
+	ReleaseDate time.Time `json:"releaseDate"`
+	Synopsis    string    `json:"synopsis"`
+	BasePrice   float32   `json:"basePrice"`
+}

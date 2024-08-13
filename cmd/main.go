@@ -20,5 +20,11 @@ func main(){
     authController := handler.NewAuthHandler(userUsecase)
     authController.Route(r)
 
+    movieRepository := repository.NewMovieRepository(db)
+    movieUsecase := usecase.NewMovieUsecase(movieRepository, userRepository)
+
+    movieController := handler.NewMovieHandler(movieUsecase)
+    movieController.Route(r)
+
     r.Run(":8080")
 }
