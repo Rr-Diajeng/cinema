@@ -11,6 +11,8 @@ type (
 	MovieRepository interface{
 		AddMovie(c context.Context, movie model.Movies) (err error)
 		FindGenreByID(c context.Context, id uint, genre *model.Genres) error
+		FindMovieByID(c context.Context, id uint) (model.Movies, error)
+		UpdateMovie(c context.Context, movie model.Movies) error
 	}
 
 	movieRepository struct{
@@ -35,4 +37,20 @@ func (mr movieRepository) AddMovie(c context.Context, movie model.Movies) (err e
 
 func (mr movieRepository) FindGenreByID(c context.Context, id uint, genre *model.Genres) error{
     return mr.db.Where("id = ?", id).First(genre).Error
+}
+
+func (mr movieRepository) FindMovieByID(c context.Context, id uint)(model.Movies, error){
+	var movie model.Movies
+
+	err := mr.db.Preload("Genres").First(&movie, id).Error
+
+	if err != nil{
+		return movie, err
+	}
+
+	return movie, nil
+}
+
+func (mr movieRepository) UpdateMovie(c context.Context, movie model.Movies) error{
+	return mr.db.Session(&gorm.Session{FullSaveAssociations: true}).Save(&movie).Error
 }

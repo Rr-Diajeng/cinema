@@ -14,6 +14,7 @@ type (
 	MovieUsecase interface {
 		InputMovie(c context.Context, movieToAdd model.AddMovieRequest) (err error)
 		CheckRole(c context.Context, token string) (role string, err error)
+		UpdateMovie(c context.Context, movieToUpdate model.UpdateMovieRequest) error
 	}
 
 	movieUsecase struct {
@@ -93,4 +94,41 @@ func (mu movieUsecase) CheckRole(c context.Context, token string) (role string, 
 	}
 
 	return user.Role.Name, nil
+}
+
+func (mu movieUsecase) UpdateMovie(c context.Context, movieToUpdate model.UpdateMovieRequest) error{
+	var genres []model.Genres
+	for _, genreID := range movieToUpdate.Genres{
+		var genre model.Genres
+		if err := mu.movieRepository.FindGenreByID(c, genreID, &genre); err != nil{
+			return err
+		}
+
+		genres = append(genres, genre)
+	}
+
+	duration, err := time.ParseDuration(movieToUpdate.Duration)
+	if err != nil{
+		return err
+	}
+
+	durationInSeconds := int64(duration.Seconds())
+
+	existingMovie, err := mu.movieRepository.FindMovieByID(c, movieToUpdate.ID)
+	if err != nil{
+		return err
+	}
+
+	existingMovie.Title = movieToUpdate.Title
+    existingMovie.Genres = genres
+    existingMovie.Duration = durationInSeconds
+    existingMovie.ReleaseDate = movieToUpdate.ReleaseDate
+    existingMovie.Synopsis = movieToUpdate.Synopsis
+    existingMovie.BasePrice = movieToUpdate.BasePrice
+
+	if err := mu.movieRepository.UpdateMovie(c, existingMovie); err != nil {
+        return err
+    }
+
+    return nil
 }
