@@ -119,6 +119,10 @@ func (mu movieUsecase) UpdateMovie(c context.Context, movieToUpdate model.Update
 		return err
 	}
 
+	if err := mu.movieRepository.ClearGenres(c, existingMovie.ID); err != nil{
+		return err
+	}
+
 	existingMovie.Title = movieToUpdate.Title
     existingMovie.Genres = genres
     existingMovie.Duration = durationInSeconds
