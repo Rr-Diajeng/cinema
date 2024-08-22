@@ -16,6 +16,7 @@ type (
 		UpdateMovie(movieToUpdate model.UpdateMovieRequest) error
 		GetOneMovie(id uint) (model.MovieResponse, error)
 		GetMovieInSchedule(exactTime time.Time) ([]model.MovieResponse, error)
+		DeleteMovieByID(id uint) error
 	}
 
 	movieUsecase struct {
@@ -174,15 +175,15 @@ func (mu movieUsecase) GetOneMovie(id uint) (model.MovieResponse, error) {
 }
 
 func (mu movieUsecase) GetMovieInSchedule(exactTime time.Time) ([]model.MovieResponse, error) {
-	
+
 	movies, err := mu.movieRepository.GetMovieInSchedule(exactTime)
 
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 
 	var movieResponses []model.MovieResponse
-	for _, movie := range movies{
+	for _, movie := range movies {
 		movieResponses = append(movieResponses, model.MovieResponse{
 			Title:       movie.Title,
 			Genres:      movie.Genres,
@@ -196,4 +197,14 @@ func (mu movieUsecase) GetMovieInSchedule(exactTime time.Time) ([]model.MovieRes
 	}
 
 	return movieResponses, nil
+}
+
+func (mu movieUsecase) DeleteMovieByID(id uint) error {
+	err := mu.movieRepository.DeleteMovieByID(id)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

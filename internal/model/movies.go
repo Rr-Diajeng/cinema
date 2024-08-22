@@ -54,7 +54,7 @@ type MovieResponse struct {
 	EndDate     time.Time `json:"endDate"`
 }
 
-type OneMovieRequest struct {
+type IdMovieRequest struct {
 	ID uint `json:"id"`
 }
 

@@ -186,7 +186,7 @@ func (mh *MovieHandler) getOneMovie(c *gin.Context) {
 		return
 	}
 
-	movieRequest := model.OneMovieRequest{}
+	movieRequest := model.IdMovieRequest{}
 	c.ShouldBindJSON(&movieRequest)
 
 	movieDetails, err := mh.movieUsecase.GetOneMovie(movieRequest.ID)
@@ -256,6 +256,70 @@ func (mh *MovieHandler) getMovieInSchedule(c *gin.Context) {
 	})
 }
 
+func (mh *MovieHandler) deleteMovie(c *gin.Context){
+
+	authToken := c.GetHeader("Authorization")
+
+	if authToken == "" {
+		c.JSON(400, gin.H{
+			"message": "Authorization token is required",
+		})
+
+		return
+	}
+
+	if !strings.HasPrefix(authToken, "Bearer ") {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "Authorization token must be in the format Bearer",
+		})
+
+		return
+	}
+
+	token := strings.Split(authToken, " ")[1]
+
+	if security.BlacklistedTokens[token] {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "User needs to log in again",
+		})
+
+		return
+	}
+
+	role, err := mh.movieUsecase.CheckRole(token)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "Internal server error",
+			"error":   err,
+		})
+	}
+
+	if role == "staff" {
+
+		updateRequest := model.IdMovieRequest{}
+		c.ShouldBindJSON(&updateRequest)
+
+		err = mh.movieUsecase.DeleteMovieByID(updateRequest.ID)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"message": "Internal server error",
+				"error":   err.Error(),
+			})
+
+			return
+		}
+
+		c.JSON(200, gin.H{
+			"message": "Movie has been deleted",
+		})
+	} else {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "User doesn't have permission to input movie",
+		})
+	}
+}
+
 func (mh *MovieHandler) Route(r *gin.Engine) *gin.Engine {
 	public := r.Group("/api/movie")
 
@@ -263,6 +327,7 @@ func (mh *MovieHandler) Route(r *gin.Engine) *gin.Engine {
 	public.PUT("/editMovie", mh.editMovie)
 	public.GET("/getOneMovie", mh.getOneMovie)
 	public.GET("/getMovieInSchedule", mh.getMovieInSchedule)
+	public.DELETE("/deleteMovie", mh.deleteMovie)
 
 	return r
 }

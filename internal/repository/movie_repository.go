@@ -15,6 +15,7 @@ type (
 		UpdateMovie(movie model.Movies) error
 		ClearGenres(id uint) error
 		GetMovieInSchedule(exactTime time.Time) ([]model.Movies, error)
+		DeleteMovieByID(id uint) error
 	}
 
 	movieRepository struct {
@@ -69,4 +70,14 @@ func (mr movieRepository) GetMovieInSchedule(exactTime time.Time) ([]model.Movie
 	}
 
 	return movies, nil
+}
+
+func (mr movieRepository) DeleteMovieByID(id uint) error{
+	err := mr.db.Delete(&model.Movies{}, id).Error
+
+	if err != nil{
+		return err
+	}
+
+	return nil
 }
