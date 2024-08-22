@@ -4,7 +4,6 @@ import (
 	"cinema/internal/model"
 	"cinema/internal/repository"
 	"cinema/internal/util/security"
-	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -15,9 +14,9 @@ import (
 
 type (
 	UserUsecase interface {
-		RegisterUser(c context.Context, userToRegister model.RegisterRequest) (err error)
-		LoginUser(c context.Context, userToLogin model.LoginRequest) (token string, err error)
-		GetUserProfile(c context.Context, token string) (userProfile model.UserProfileResponse, err error)
+		RegisterUser(userToRegister model.RegisterRequest) (err error)
+		LoginUser(userToLogin model.LoginRequest) (token string, err error)
+		GetUserProfile(token string) (userProfile model.UserProfileResponse, err error)
 	}
 
 	userUsecase struct {
@@ -31,9 +30,9 @@ func NewUserUsecase(user repository.UserRepository) UserUsecase {
 	}
 }
 
-func (uu userUsecase) RegisterUser(c context.Context, userToRegister model.RegisterRequest) (err error) {
+func (uu userUsecase) RegisterUser(userToRegister model.RegisterRequest) (err error) {
 	encodedPass, _ := security.HashPassword(userToRegister.Password)
-	if err = uu.userRepository.Save(c, model.Users{
+	if err = uu.userRepository.Save(model.Users{
 		Username: userToRegister.Username,
 		Email:    userToRegister.Email,
 		Password: encodedPass,
@@ -45,8 +44,8 @@ func (uu userUsecase) RegisterUser(c context.Context, userToRegister model.Regis
 	return nil
 }
 
-func (uu userUsecase) LoginUser(c context.Context, userToLogin model.LoginRequest) (token string, err error) {
-	user, err := uu.userRepository.FindUserByEmailOrUsername(c, userToLogin.UsernameOrEmail)
+func (uu userUsecase) LoginUser(userToLogin model.LoginRequest) (token string, err error) {
+	user, err := uu.userRepository.FindUserByEmailOrUsername(userToLogin.UsernameOrEmail)
 
 	if err != nil {
 		return "", err
@@ -70,7 +69,7 @@ func (uu userUsecase) LoginUser(c context.Context, userToLogin model.LoginReques
 	return token, nil
 }
 
-func (uu userUsecase) GetUserProfile(c context.Context, token string) (model.UserProfileResponse, error) {
+func (uu userUsecase) GetUserProfile(token string) (model.UserProfileResponse, error) {
     userProfile := model.UserProfileResponse{}
 
     claims, err := security.ParseToken(token)
@@ -96,7 +95,7 @@ func (uu userUsecase) GetUserProfile(c context.Context, token string) (model.Use
         return userProfile, fmt.Errorf("invalid token claims: no user Id or unexpected type, claims received: %+v", *claims)
     }
 
-    user, err := uu.userRepository.FindOneUser(c, userId)
+    user, err := uu.userRepository.FindOneUser(userId)
     if err != nil {
         return userProfile, fmt.Errorf("user not found: %w", err)
     }

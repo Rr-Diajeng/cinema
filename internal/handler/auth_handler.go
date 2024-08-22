@@ -32,7 +32,7 @@ func (ah *AuthHandler) register(c *gin.Context) {
 		return
 	}
 
-	err = ah.userUsecase.RegisterUser(c, registerRequest)
+	err = ah.userUsecase.RegisterUser(registerRequest)
 
 	if err != nil {
 		c.JSON(500, gin.H{
@@ -60,7 +60,7 @@ func (ah *AuthHandler) login(c *gin.Context) {
 		return
 	}
 
-	token, err := ah.userUsecase.LoginUser(c, loginRequest)
+	token, err := ah.userUsecase.LoginUser(loginRequest)
 	if err != nil {
 		c.JSON(500, gin.H{
 			"message": "Internal Server Error",
@@ -126,7 +126,7 @@ func (ah *AuthHandler) getUserProfile(c *gin.Context) {
 		return
 	}
 
-	userProfile, err := ah.userUsecase.GetUserProfile(c, token)
+	userProfile, err := ah.userUsecase.GetUserProfile(token)
 
 	if err != nil {
 		c.JSON(500, gin.H{

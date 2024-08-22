@@ -50,7 +50,7 @@ func (mh *MovieHandler) addMovie(c *gin.Context) {
 		return
 	}
 
-	role, err := mh.movieUsecase.CheckRole(c, token)
+	role, err := mh.movieUsecase.CheckRole(token)
 
 	if err != nil{
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -72,7 +72,7 @@ func (mh *MovieHandler) addMovie(c *gin.Context) {
 	}
 
 	if role == "staff"{
-		err = mh.movieUsecase.InputMovie(c, inputRequest)
+		err = mh.movieUsecase.InputMovie(inputRequest)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"message": "Internal server error",
@@ -122,7 +122,7 @@ func (mh *MovieHandler) editMovie(c *gin.Context){
 		return
 	}
 
-	role, err := mh.movieUsecase.CheckRole(c, token)
+	role, err := mh.movieUsecase.CheckRole(token)
 
 	if err != nil{
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -136,7 +136,7 @@ func (mh *MovieHandler) editMovie(c *gin.Context){
 		updateRequest := model.UpdateMovieRequest{}
 		c.ShouldBindJSON(&updateRequest)
 
-		err = mh.movieUsecase.UpdateMovie(c, updateRequest)
+		err = mh.movieUsecase.UpdateMovie(updateRequest)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"message": "Internal server error",

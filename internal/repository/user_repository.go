@@ -2,16 +2,15 @@ package repository
 
 import (
 	"cinema/internal/model"
-	"context"
 
 	"gorm.io/gorm"
 )
 
 type (
 	UserRepository interface {
-		Save(c context.Context, user model.Users) (err error)
-		FindUserByEmailOrUsername(c context.Context, email string) (user model.Users, err error)
-		FindOneUser(c context.Context, id uint) (user model.Users, err error)
+		Save(user model.Users) (err error)
+		FindUserByEmailOrUsername(email string) (user model.Users, err error)
+		FindOneUser(id uint) (user model.Users, err error)
 	}
 
 	userRepository struct {
@@ -27,7 +26,7 @@ func NewUserRepository(db *gorm.DB) UserRepository {
 	}
 }
 
-func (ur userRepository) Save(c context.Context, user model.Users) (err error) {
+func (ur userRepository) Save(user model.Users) (err error) {
 
 	if err = ur.db.Save(&user).Error; err != nil {
 		return err
@@ -36,7 +35,7 @@ func (ur userRepository) Save(c context.Context, user model.Users) (err error) {
 	return nil
 }
 
-func (ur userRepository) FindUserByEmailOrUsername(c context.Context, data string) (user model.Users, err error) {
+func (ur userRepository) FindUserByEmailOrUsername(data string) (user model.Users, err error) {
 
 	err = ur.db.Where("email = ? OR username = ?", data, data).First(&user).Error
 	if err != nil {
@@ -45,7 +44,7 @@ func (ur userRepository) FindUserByEmailOrUsername(c context.Context, data strin
 	return user, nil
 }
 
-func (ur userRepository) FindOneUser(c context.Context, id uint) (model.Users, error) {
+func (ur userRepository) FindOneUser(id uint) (model.Users, error) {
     var user model.Users
 	
     err := ur.db.Preload("Role").Where("id = ?", id).First(&user).Error

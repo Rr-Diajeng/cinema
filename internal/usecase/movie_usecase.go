@@ -4,7 +4,6 @@ import (
 	"cinema/internal/model"
 	"cinema/internal/repository"
 	"cinema/internal/util/security"
-	"context"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -12,9 +11,9 @@ import (
 
 type (
 	MovieUsecase interface {
-		InputMovie(c context.Context, movieToAdd model.AddMovieRequest) (err error)
-		CheckRole(c context.Context, token string) (role string, err error)
-		UpdateMovie(c context.Context, movieToUpdate model.UpdateMovieRequest) error
+		InputMovie(movieToAdd model.AddMovieRequest) (err error)
+		CheckRole(token string) (role string, err error)
+		UpdateMovie(movieToUpdate model.UpdateMovieRequest) error
 	}
 
 	movieUsecase struct {
@@ -30,13 +29,13 @@ func NewMovieUsecase(movie repository.MovieRepository, user repository.UserRepos
 	}
 }
 
-func (mu movieUsecase) InputMovie(c context.Context, movieToAdd model.AddMovieRequest) (err error) {
+func (mu movieUsecase) InputMovie(movieToAdd model.AddMovieRequest) (err error) {
 
 	var genres []model.Genres
 
 	for _, genreID := range movieToAdd.Genres {
 		var genre model.Genres
-		if err := mu.movieRepository.FindGenreByID(c, genreID, &genre); err != nil {
+		if err := mu.movieRepository.FindGenreByID(genreID, &genre); err != nil {
 			return err
 		}
 
@@ -50,7 +49,7 @@ func (mu movieUsecase) InputMovie(c context.Context, movieToAdd model.AddMovieRe
 
 	durationInSeconds := int64(duration.Seconds())
 
-	if err := mu.movieRepository.AddMovie(c, model.Movies{
+	if err := mu.movieRepository.AddMovie(model.Movies{
 		Title:       movieToAdd.Title,
 		Genres:      genres,
 		Duration:    durationInSeconds,
@@ -64,7 +63,7 @@ func (mu movieUsecase) InputMovie(c context.Context, movieToAdd model.AddMovieRe
 	return nil
 }
 
-func (mu movieUsecase) CheckRole(c context.Context, token string) (role string, err error) {
+func (mu movieUsecase) CheckRole(token string) (role string, err error) {
 	claims, err := security.ParseToken(token)
 	if err != nil {
 		return "", fmt.Errorf("invalid token: %w", err)
@@ -88,7 +87,7 @@ func (mu movieUsecase) CheckRole(c context.Context, token string) (role string, 
 		return "", fmt.Errorf("invalid token claims: no user Id or unexpected type, claims received: %+v", *claims)
 	}
 
-	user, err := mu.userRepository.FindOneUser(c, userId)
+	user, err := mu.userRepository.FindOneUser(userId)
 	if err != nil {
 		return "", fmt.Errorf("user not found: %w", err)
 	}
@@ -96,11 +95,11 @@ func (mu movieUsecase) CheckRole(c context.Context, token string) (role string, 
 	return user.Role.Name, nil
 }
 
-func (mu movieUsecase) UpdateMovie(c context.Context, movieToUpdate model.UpdateMovieRequest) error{
+func (mu movieUsecase) UpdateMovie(movieToUpdate model.UpdateMovieRequest) error{
 	var genres []model.Genres
 	for _, genreID := range movieToUpdate.Genres{
 		var genre model.Genres
-		if err := mu.movieRepository.FindGenreByID(c, genreID, &genre); err != nil{
+		if err := mu.movieRepository.FindGenreByID(genreID, &genre); err != nil{
 			return err
 		}
 
@@ -114,12 +113,12 @@ func (mu movieUsecase) UpdateMovie(c context.Context, movieToUpdate model.Update
 
 	durationInSeconds := int64(duration.Seconds())
 
-	existingMovie, err := mu.movieRepository.FindMovieByID(c, movieToUpdate.ID)
+	existingMovie, err := mu.movieRepository.FindMovieByID(movieToUpdate.ID)
 	if err != nil{
 		return err
 	}
 
-	if err := mu.movieRepository.ClearGenres(c, existingMovie.ID); err != nil{
+	if err := mu.movieRepository.ClearGenres(existingMovie.ID); err != nil{
 		return err
 	}
 
@@ -130,7 +129,7 @@ func (mu movieUsecase) UpdateMovie(c context.Context, movieToUpdate model.Update
     existingMovie.Synopsis = movieToUpdate.Synopsis
     existingMovie.BasePrice = movieToUpdate.BasePrice
 
-	if err := mu.movieRepository.UpdateMovie(c, existingMovie); err != nil {
+	if err := mu.movieRepository.UpdateMovie(existingMovie); err != nil {
         return err
     }
 
