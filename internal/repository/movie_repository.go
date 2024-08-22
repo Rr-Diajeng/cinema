@@ -55,6 +55,6 @@ func (mr movieRepository) UpdateMovie(movie model.Movies) error {
 	return mr.db.Session(&gorm.Session{FullSaveAssociations: true}).Save(&movie).Error
 }
 
-func (mr movieRepository) ClearGenres(id uint) error{
+func (mr movieRepository) ClearGenres(id uint) error {
 	return mr.db.Model(&model.Movies{ID: id}).Association("Genres").Clear()
 }

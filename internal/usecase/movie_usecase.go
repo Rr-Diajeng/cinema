@@ -14,6 +14,7 @@ type (
 		InputMovie(movieToAdd model.AddMovieRequest) (err error)
 		CheckRole(token string) (role string, err error)
 		UpdateMovie(movieToUpdate model.UpdateMovieRequest) error
+		GetOneMovie(id uint) (model.OneMovieResponse, error)
 	}
 
 	movieUsecase struct {
@@ -134,4 +135,33 @@ func (mu movieUsecase) UpdateMovie(movieToUpdate model.UpdateMovieRequest) error
     }
 
     return nil
+}
+
+func (mu movieUsecase) GetOneMovie(id uint) (model.OneMovieResponse, error){
+
+	movieDetails := model.OneMovieResponse{}
+
+	movie, err :=  mu.movieRepository.FindMovieByID(id)
+
+	if err != nil{
+		return movieDetails, fmt.Errorf("movie not found: %w", err)
+	}
+
+	var genres []model.Genres
+    for _, genre := range movie.Genres {
+        var fetchedGenre model.Genres
+        if err := mu.movieRepository.FindGenreByID(genre.ID, &fetchedGenre); err != nil {
+            return movieDetails, err
+        }
+        genres = append(genres, fetchedGenre)
+    }
+
+    movieDetails.Title = movie.Title
+    movieDetails.Genres = genres 
+    movieDetails.Duration = movie.Duration
+    movieDetails.ReleaseDate = movie.ReleaseDate
+    movieDetails.Synopsis = movie.Synopsis
+    movieDetails.BasePrice = movie.BasePrice
+
+	return movieDetails, nil
 }

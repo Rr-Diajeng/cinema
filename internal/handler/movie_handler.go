@@ -158,11 +158,61 @@ func (mh *MovieHandler) editMovie(c *gin.Context){
 
 }
 
+func (mh *MovieHandler) getOneMovie(c *gin.Context){
+	authToken := c.GetHeader("Authorization")
+
+	if authToken == "" {
+		c.JSON(400, gin.H{
+			"message": "Authorization token is required",
+		})
+
+		return
+	}
+
+	if !strings.HasPrefix(authToken, "Bearer ") {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "Authorization token must be in the format Bearer",
+		})
+
+		return
+	}
+
+	token := strings.Split(authToken, " ")[1]
+
+	if security.BlacklistedTokens[token] {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "User needs to log in again",
+		})
+
+		return
+	}
+
+	movieRequest := model.OneMovieRequest{}
+	c.ShouldBindJSON(&movieRequest)
+
+	movieDetails, err := mh.movieUsecase.GetOneMovie(movieRequest.ID)
+
+	if err != nil{
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "Internal server error",
+            "error": err.Error(),
+		})
+
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"message": "can get movie details",
+		"movie detail": movieDetails,
+	})
+}
+
 func (mh *MovieHandler) Route(r *gin.Engine) *gin.Engine {
 	public := r.Group("/api/movie")
 
 	public.POST("/addMovie", mh.addMovie)
 	public.PUT("/editMovie", mh.editMovie)
+	public.GET("/getOneMovie", mh.getOneMovie)
 
 	return r
 }

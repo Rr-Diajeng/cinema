@@ -36,3 +36,16 @@ type UpdateMovieRequest struct {
 	Synopsis    string    `json:"synopsis"`
 	BasePrice   float32   `json:"basePrice"`
 }
+
+type OneMovieResponse struct{
+	Title       string    `json:"title"`
+	Genres      []Genres    `json:"genres"`
+	Duration    int64    `json:"duration"`
+	ReleaseDate time.Time `json:"releaseDate"`
+	Synopsis    string    `json:"synopsis"`
+	BasePrice   float32   `json:"basePrice"`
+}
+
+type OneMovieRequest struct{
+	ID uint `json:"id"`
+}
