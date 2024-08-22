@@ -2,6 +2,7 @@ package repository
 
 import (
 	"cinema/internal/model"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -13,6 +14,7 @@ type (
 		FindMovieByID(id uint) (model.Movies, error)
 		UpdateMovie(movie model.Movies) error
 		ClearGenres(id uint) error
+		GetMovieInSchedule(exactTime time.Time) ([]model.Movies, error)
 	}
 
 	movieRepository struct {
@@ -57,4 +59,14 @@ func (mr movieRepository) UpdateMovie(movie model.Movies) error {
 
 func (mr movieRepository) ClearGenres(id uint) error {
 	return mr.db.Model(&model.Movies{ID: id}).Association("Genres").Clear()
+}
+
+func (mr movieRepository) GetMovieInSchedule(exactTime time.Time) ([]model.Movies, error) {
+	var movies []model.Movies
+	err := mr.db.Preload("Genres").Preload("Tickets").Where("start_date <= ? AND end_date >= ?", exactTime, exactTime).Find(&movies).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return movies, nil
 }

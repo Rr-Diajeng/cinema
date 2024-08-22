@@ -16,6 +16,8 @@ type Movies struct {
 	Synopsis    string    `gorm:"type:text"`
 	BasePrice   float32   `gorm:"type:float"`
 	Tickets     []Tickets `gorm:"foreignKey:MovieID"`
+	StartDate   time.Time `gorm:"type:timestamp;not_null"`
+	EndDate     time.Time `gorm:"type:timestamp;not_null"`
 }
 
 type AddMovieRequest struct {
@@ -25,6 +27,8 @@ type AddMovieRequest struct {
 	ReleaseDate time.Time `json:"releaseDate"`
 	Synopsis    string    `json:"synopsis"`
 	BasePrice   float32   `json:"basePrice"`
+	StartDate   time.Time `json:"startDate"`
+	EndDate     time.Time `json:"endDate"`
 }
 
 type UpdateMovieRequest struct {
@@ -35,17 +39,25 @@ type UpdateMovieRequest struct {
 	ReleaseDate time.Time `json:"releaseDate"`
 	Synopsis    string    `json:"synopsis"`
 	BasePrice   float32   `json:"basePrice"`
+	StartDate   time.Time `json:"startDate"`
+	EndDate     time.Time `json:"endDate"`
 }
 
-type OneMovieResponse struct{
+type MovieResponse struct {
 	Title       string    `json:"title"`
-	Genres      []Genres    `json:"genres"`
-	Duration    int64    `json:"duration"`
+	Genres      []Genres  `json:"genres"`
+	Duration    int64     `json:"duration"`
 	ReleaseDate time.Time `json:"releaseDate"`
 	Synopsis    string    `json:"synopsis"`
 	BasePrice   float32   `json:"basePrice"`
+	StartDate   time.Time `json:"startDate"`
+	EndDate     time.Time `json:"endDate"`
 }
 
-type OneMovieRequest struct{
+type OneMovieRequest struct {
 	ID uint `json:"id"`
+}
+
+type MovieInScheduleRequest struct {
+	ExactTime time.Time `json:"time"`
 }

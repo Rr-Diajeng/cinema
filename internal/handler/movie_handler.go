@@ -52,26 +52,26 @@ func (mh *MovieHandler) addMovie(c *gin.Context) {
 
 	role, err := mh.movieUsecase.CheckRole(token)
 
-	if err != nil{
+	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"message": "Internal server error",
-			"error": err,
+			"error":   err,
 		})
 	}
 
 	inputRequest := model.AddMovieRequest{}
 	err = c.ShouldBindJSON(&inputRequest)
 
-	if err != nil{
+	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"message": "Bad Request",
-			"error": err.Error(),
+			"error":   err.Error(),
 		})
 
 		return
 	}
 
-	if role == "staff"{
+	if role == "staff" {
 		err = mh.movieUsecase.InputMovie(inputRequest)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
@@ -85,7 +85,7 @@ func (mh *MovieHandler) addMovie(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "Input movie has been successful",
 		})
-	} else{
+	} else {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"message": "User doesn't have permission to input movie",
 		})
@@ -93,7 +93,7 @@ func (mh *MovieHandler) addMovie(c *gin.Context) {
 
 }
 
-func (mh *MovieHandler) editMovie(c *gin.Context){
+func (mh *MovieHandler) editMovie(c *gin.Context) {
 	authToken := c.GetHeader("Authorization")
 
 	if authToken == "" {
@@ -124,14 +124,14 @@ func (mh *MovieHandler) editMovie(c *gin.Context){
 
 	role, err := mh.movieUsecase.CheckRole(token)
 
-	if err != nil{
+	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"message": "Internal server error",
-			"error": err,
+			"error":   err,
 		})
 	}
 
-	if role == "staff"{
+	if role == "staff" {
 
 		updateRequest := model.UpdateMovieRequest{}
 		c.ShouldBindJSON(&updateRequest)
@@ -149,16 +149,15 @@ func (mh *MovieHandler) editMovie(c *gin.Context){
 		c.JSON(200, gin.H{
 			"message": "Input movie has been successful",
 		})
-	} else{
+	} else {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"message": "User doesn't have permission to input movie",
 		})
 	}
 
-
 }
 
-func (mh *MovieHandler) getOneMovie(c *gin.Context){
+func (mh *MovieHandler) getOneMovie(c *gin.Context) {
 	authToken := c.GetHeader("Authorization")
 
 	if authToken == "" {
@@ -192,18 +191,68 @@ func (mh *MovieHandler) getOneMovie(c *gin.Context){
 
 	movieDetails, err := mh.movieUsecase.GetOneMovie(movieRequest.ID)
 
-	if err != nil{
+	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"message": "Internal server error",
-            "error": err.Error(),
+			"error":   err.Error(),
 		})
 
 		return
 	}
 
 	c.JSON(200, gin.H{
-		"message": "can get movie details",
+		"message":      "can get movie details",
 		"movie detail": movieDetails,
+	})
+}
+
+func (mh *MovieHandler) getMovieInSchedule(c *gin.Context) {
+	authToken := c.GetHeader("Authorization")
+
+	if authToken == "" {
+		c.JSON(400, gin.H{
+			"message": "Authorization token is required",
+		})
+
+		return
+	}
+
+	if !strings.HasPrefix(authToken, "Bearer ") {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "Authorization token must be in the format Bearer",
+		})
+
+		return
+	}
+
+	token := strings.Split(authToken, " ")[1]
+
+	if security.BlacklistedTokens[token] {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "User needs to log in again",
+		})
+
+		return
+	}
+
+	exactTimeRequest := model.MovieInScheduleRequest{}
+	c.ShouldBindJSON(&exactTimeRequest)
+
+	movies, err := mh.movieUsecase.GetMovieInSchedule(exactTimeRequest.ExactTime)
+
+	if err != nil{
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "Internal Server Error",
+			"error": err.Error(),
+		})
+
+		return
+	}
+
+
+	c.JSON(200, gin.H{
+		"message": "can get the movie",
+		"movies": movies,
 	})
 }
 
@@ -213,6 +262,7 @@ func (mh *MovieHandler) Route(r *gin.Engine) *gin.Engine {
 	public.POST("/addMovie", mh.addMovie)
 	public.PUT("/editMovie", mh.editMovie)
 	public.GET("/getOneMovie", mh.getOneMovie)
+	public.GET("/getMovieInSchedule", mh.getMovieInSchedule)
 
 	return r
 }
