@@ -51,3 +51,7 @@ type SeatRequestByClass struct {
 type SeatRequestByCinemaStudios struct {
 	CinemaStudiosID uint `json:"cinema_studios_id"`
 }
+
+type IDSeatRequest struct{
+	ID uint `json:"id"`
+}

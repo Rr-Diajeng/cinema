@@ -16,6 +16,7 @@ type (
 		FindCinemaStudiosByID(id uint) (model.CinemaStudios, error)
 		GetSeatByClass(id uint)([]model.Seats, error)
 		GetSeatByCinemaStudios(id uint) ([]model.Seats, error)
+		DeleteSeat(id uint) error
 	}
 
 	seatRepository struct {
@@ -120,4 +121,14 @@ func (sr seatRepository) GetSeatByCinemaStudios(id uint) ([]model.Seats, error){
 	}
 
 	return seats, nil
+}
+
+func (sr seatRepository) DeleteSeat(id uint) error{
+	err := sr.db.Delete(&model.Seats{}, id).Error
+
+    if err!= nil{
+        return err
+    }
+
+    return nil
 }

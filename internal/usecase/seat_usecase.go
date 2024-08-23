@@ -12,6 +12,7 @@ type(
 		FindSeatByStatus(statusRequest model.SeatRequestByStatus) ([]model.SeatResponse, error)
 		FindSeatByClass(classRequest model.SeatRequestByClass) ([]model.SeatResponse, error)
 		FindSeatByCinemaStudios(cinemaRequest model.SeatRequestByCinemaStudios) ([]model.SeatResponse, error)
+		DeleteSeat(seatRequest model.IDSeatRequest) error
 	}
 
 	seatUsecase struct{
@@ -149,4 +150,14 @@ func (su seatUsecase) FindSeatByCinemaStudios(cinemaRequest model.SeatRequestByC
 	}
 
 	return seatResponse, nil
+}
+
+func (su seatUsecase) DeleteSeat(seatRequest model.IDSeatRequest) error{
+	err := su.seatRepository.DeleteSeat(seatRequest.ID)
+
+	if err != nil{
+		return err
+	}
+
+	return nil
 }
