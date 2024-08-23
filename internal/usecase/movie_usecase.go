@@ -3,8 +3,6 @@ package usecase
 import (
 	"cinema/internal/model"
 	"cinema/internal/repository"
-	"cinema/internal/util/security"
-	"encoding/json"
 	"fmt"
 	"time"
 )
@@ -12,7 +10,6 @@ import (
 type (
 	MovieUsecase interface {
 		InputMovie(movieToAdd model.AddMovieRequest) (err error)
-		CheckRole(token string) (role string, err error)
 		UpdateMovie(movieToUpdate model.UpdateMovieRequest) error
 		GetOneMovie(id uint) (model.MovieResponse, error)
 		GetMovieInSchedule(exactTime time.Time) ([]model.MovieResponse, error)
@@ -21,14 +18,12 @@ type (
 
 	movieUsecase struct {
 		movieRepository repository.MovieRepository
-		userRepository  repository.UserRepository
 	}
 )
 
-func NewMovieUsecase(movie repository.MovieRepository, user repository.UserRepository) MovieUsecase {
+func NewMovieUsecase(movie repository.MovieRepository) MovieUsecase {
 	return movieUsecase{
 		movieRepository: movie,
-		userRepository:  user,
 	}
 }
 
@@ -66,38 +61,6 @@ func (mu movieUsecase) InputMovie(movieToAdd model.AddMovieRequest) (err error) 
 	}
 
 	return nil
-}
-
-func (mu movieUsecase) CheckRole(token string) (role string, err error) {
-	claims, err := security.ParseToken(token)
-	if err != nil {
-		return "", fmt.Errorf("invalid token: %w", err)
-	}
-
-	var userId uint
-	switch id := (*claims)["Id"].(type) {
-	case float64:
-		userId = uint(id)
-	case int:
-		userId = uint(id)
-	case int64:
-		userId = uint(id)
-	case json.Number:
-		parsedId, err := id.Int64()
-		if err != nil {
-			return "", fmt.Errorf("invalid token claims: cannot parse user Id, error: %v", err)
-		}
-		userId = uint(parsedId)
-	default:
-		return "", fmt.Errorf("invalid token claims: no user Id or unexpected type, claims received: %+v", *claims)
-	}
-
-	user, err := mu.userRepository.FindOneUser(userId)
-	if err != nil {
-		return "", fmt.Errorf("user not found: %w", err)
-	}
-
-	return user.Role.Name, nil
 }
 
 func (mu movieUsecase) UpdateMovie(movieToUpdate model.UpdateMovieRequest) error {

@@ -17,6 +17,7 @@ type (
 		RegisterUser(userToRegister model.RegisterRequest) (err error)
 		LoginUser(userToLogin model.LoginRequest) (token string, err error)
 		GetUserProfile(token string) (userProfile model.UserProfileResponse, err error)
+		CheckRole(token string) (role string, err error)
 	}
 
 	userUsecase struct {
@@ -107,3 +108,34 @@ func (uu userUsecase) GetUserProfile(token string) (model.UserProfileResponse, e
     return userProfile, nil
 }
 
+func (uu userUsecase) CheckRole(token string) (role string, err error) {
+	claims, err := security.ParseToken(token)
+	if err != nil {
+		return "", fmt.Errorf("invalid token: %w", err)
+	}
+
+	var userId uint
+	switch id := (*claims)["Id"].(type) {
+	case float64:
+		userId = uint(id)
+	case int:
+		userId = uint(id)
+	case int64:
+		userId = uint(id)
+	case json.Number:
+		parsedId, err := id.Int64()
+		if err != nil {
+			return "", fmt.Errorf("invalid token claims: cannot parse user Id, error: %v", err)
+		}
+		userId = uint(parsedId)
+	default:
+		return "", fmt.Errorf("invalid token claims: no user Id or unexpected type, claims received: %+v", *claims)
+	}
+
+	user, err := uu.userRepository.FindOneUser(userId)
+	if err != nil {
+		return "", fmt.Errorf("user not found: %w", err)
+	}
+
+	return user.Role.Name, nil
+}

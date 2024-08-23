@@ -12,11 +12,13 @@ import (
 
 type MovieHandler struct {
 	movieUsecase usecase.MovieUsecase
+	userUsecase usecase.UserUsecase
 }
 
-func NewMovieHandler(movieUsecase usecase.MovieUsecase) *MovieHandler {
+func NewMovieHandler(movieUsecase usecase.MovieUsecase, userUsecase usecase.UserUsecase) *MovieHandler {
 	return &MovieHandler{
 		movieUsecase: movieUsecase,
+		userUsecase: userUsecase,
 	}
 }
 
@@ -50,7 +52,7 @@ func (mh *MovieHandler) addMovie(c *gin.Context) {
 		return
 	}
 
-	role, err := mh.movieUsecase.CheckRole(token)
+	role, err := mh.userUsecase.CheckRole(token)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -122,7 +124,7 @@ func (mh *MovieHandler) editMovie(c *gin.Context) {
 		return
 	}
 
-	role, err := mh.movieUsecase.CheckRole(token)
+	role, err := mh.userUsecase.CheckRole(token)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -286,7 +288,7 @@ func (mh *MovieHandler) deleteMovie(c *gin.Context){
 		return
 	}
 
-	role, err := mh.movieUsecase.CheckRole(token)
+	role, err := mh.userUsecase.CheckRole(token)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
