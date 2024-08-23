@@ -11,6 +11,7 @@ type(
 		UpdateStatusSeat(seatRequest model.UpdateSeat) error
 		FindSeatByStatus(statusRequest model.SeatRequestByStatus) ([]model.SeatResponse, error)
 		FindSeatByClass(classRequest model.SeatRequestByClass) ([]model.SeatResponse, error)
+		FindSeatByCinemaStudios(cinemaRequest model.SeatRequestByCinemaStudios) ([]model.SeatResponse, error)
 	}
 
 	seatUsecase struct{
@@ -116,6 +117,35 @@ func (su seatUsecase) FindSeatByClass(classRequest model.SeatRequestByClass) ([]
             Status: string(seat.Status),
 		})
 
+	}
+
+	return seatResponse, nil
+}
+
+func (su seatUsecase) FindSeatByCinemaStudios(cinemaRequest model.SeatRequestByCinemaStudios) ([]model.SeatResponse, error){
+	seats, err := su.seatRepository.GetSeatByCinemaStudios(cinemaRequest.CinemaStudiosID)
+	if err!= nil{
+        return nil, err
+    }
+
+	var seatResponse []model.SeatResponse
+	for _, seat := range seats{
+		cinemaStudios, err := su.seatRepository.FindCinemaStudiosByID(seat.CinemaStudiosID)
+		if err != nil{
+			return nil, err
+		}
+
+		class, err := su.seatRepository.FindClassByID(seat.ClassID)
+		if err != nil{
+			return nil, err
+		}
+
+		seatResponse = append(seatResponse, model.SeatResponse{
+			CinemaStudios: cinemaStudios.Name,
+            Class: class.Name,
+            SeatNumber: seat.SeatNumber,
+            Status: string(seat.Status),
+		})
 	}
 
 	return seatResponse, nil

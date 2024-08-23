@@ -15,6 +15,7 @@ type (
 		FindClassByID(id uint) (model.Class, error)
 		FindCinemaStudiosByID(id uint) (model.CinemaStudios, error)
 		GetSeatByClass(id uint)([]model.Seats, error)
+		GetSeatByCinemaStudios(id uint) ([]model.Seats, error)
 	}
 
 	seatRepository struct {
@@ -101,6 +102,18 @@ func (sr seatRepository) GetSeatByClass(id uint)([]model.Seats, error){
 	var seats []model.Seats
 
 	err := sr.db.Where("class_id = ?", id).Find(&seats).Error
+
+	if err != nil{
+		return nil, err
+	}
+
+	return seats, nil
+}
+
+func (sr seatRepository) GetSeatByCinemaStudios(id uint) ([]model.Seats, error){
+	var seats []model.Seats
+
+	err := sr.db.Where("cinema_studios_id = ?", id).Find(&seats).Error
 
 	if err != nil{
 		return nil, err

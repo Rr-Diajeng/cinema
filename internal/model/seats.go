@@ -45,5 +45,9 @@ type SeatResponse struct {
 }
 
 type SeatRequestByClass struct {
-	ClassID uint `json:"class"`
+	ClassID uint `json:"class_id"`
+}
+
+type SeatRequestByCinemaStudios struct {
+	CinemaStudiosID uint `json:"cinema_studios_id"`
 }
