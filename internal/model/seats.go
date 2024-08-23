@@ -32,3 +32,14 @@ type UpdateSeat struct {
 	ID     uint   `json:"id" binding:"required"`
 	Status string `json:"status" binding:"required,oneof='available' 'booked'"`
 }
+
+type SeatRequestByStatus struct {
+	Status string `json:"status" binding:"required,oneof='available' 'booked'"`
+}
+
+type SeatResponse struct {
+	CinemaStudios string `json:"cinemaStudios"` 
+	Class         string `json:"class"`         
+	SeatNumber    string `json:"seatNumber"`    
+	Status        string `json:"status"`
+}

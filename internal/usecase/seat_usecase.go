@@ -9,6 +9,7 @@ type(
 	SeatUsecase interface{
 		AddSeat(seat model.SeatInput) error
 		UpdateStatusSeat(seatRequest model.UpdateSeat) error
+		FindSeatByStatus(statusRequest model.SeatRequestByStatus) ([]model.SeatResponse, error)
 	}
 
 	seatUsecase struct{
@@ -54,4 +55,36 @@ func (su seatUsecase) UpdateStatusSeat(seatRequest model.UpdateSeat) error{
 	}
 
 	return nil
+}
+
+func (su seatUsecase) FindSeatByStatus(statusRequest model.SeatRequestByStatus) ([]model.SeatResponse, error){
+
+	seats, err := su.seatRepository.GetSeatByStatus(statusRequest.Status)
+
+	if err != nil{
+		return nil, err
+	}
+
+	var seatResponse []model.SeatResponse
+
+	for _, seat := range seats{
+		cinemaStudio, err := su.seatRepository.FindCinemaStudiosByID(seat.CinemaStudiosID)
+		if err != nil{
+			return nil, err
+		}
+
+		class, err := su.seatRepository.FindClassByID(seat.ClassID)
+		if err != nil{
+			return nil, err
+		}
+
+		seatResponse = append(seatResponse, model.SeatResponse{
+			CinemaStudios: cinemaStudio.Name,
+			Class: class.Name,
+            SeatNumber: seat.SeatNumber,
+            Status: string(seat.Status),
+		})
+	}
+
+	return seatResponse, nil
 }
