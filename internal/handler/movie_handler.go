@@ -149,11 +149,11 @@ func (mh *MovieHandler) editMovie(c *gin.Context) {
 		}
 
 		c.JSON(200, gin.H{
-			"message": "Input movie has been successful",
+			"message": "Edit movie has been successful",
 		})
 	} else {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"message": "User doesn't have permission to input movie",
+			"message": "User doesn't have permission to edit movie",
 		})
 	}
 
@@ -317,7 +317,7 @@ func (mh *MovieHandler) deleteMovie(c *gin.Context){
 		})
 	} else {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"message": "User doesn't have permission to input movie",
+			"message": "User doesn't have permission to delete movie",
 		})
 	}
 }

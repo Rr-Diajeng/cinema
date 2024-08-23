@@ -8,6 +8,7 @@ import (
 type(
 	SeatUsecase interface{
 		AddSeat(seat model.SeatInput) error
+		UpdateStatusSeat(seatRequest model.UpdateSeat) error
 	}
 
 	seatUsecase struct{
@@ -28,6 +29,25 @@ func (su seatUsecase) AddSeat(seat model.SeatInput) error{
 		SeatNumber: seat.SeatNumber,
 		Status: model.SeatStatus(seat.Status),
 	})
+
+	if err != nil{
+		return err
+	}
+
+	return nil
+}
+
+func (su seatUsecase) UpdateStatusSeat(seatRequest model.UpdateSeat) error{
+
+	seat, err := su.seatRepository.FindSeatByID(seatRequest.ID)
+
+	if err != nil{
+		return err
+	}
+
+	seat.Status = model.SeatStatus(seatRequest.Status)
+
+	err = su.seatRepository.UpdateStatusSeat(seat)
 
 	if err != nil{
 		return err

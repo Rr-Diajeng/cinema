@@ -27,3 +27,8 @@ type SeatInput struct {
 	SeatNumber      string `json:"seatNumber" binding:"required"`
 	Status          string `json:"status" binding:"required,oneof='available' 'booked'"`
 }
+
+type UpdateSeat struct {
+	ID     uint   `json:"id" binding:"required"`
+	Status string `json:"status" binding:"required,oneof='available' 'booked'"`
+}
